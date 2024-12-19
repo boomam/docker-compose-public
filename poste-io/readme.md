@@ -34,6 +34,9 @@ Connecting to mail.domain.com on port25
 
 << 220 mail.domain.com ESMTP Haraka ready
 ```
+You can also verify that Poste see's the original source IP by checking the dashboard screen, and seeing if a live connection from an external testing service, like [MX Toolbox](https://mxtoolbox.com/SuperTool.aspx?action=smtp) shows its original IP, and not the IP of your docker network. Example - 
+![poste-original-ip-example](./poste-original-ip-example.png)
+
 ### IMAP & TLS
 Run the following commands on CLI to check for certificate usage on your SMTPS, IMAP & POP3S ports
 
