@@ -1,0 +1,54 @@
+version: '3'
+services:
+  poste-io:
+    container_name: poste-io
+    hostname: mail.domain.com
+    image: analogic/poste.io:2.4.10
+    environment:
+      - TZ=Americas/New_York
+      - HTTP_PORT=8080
+      - HTTPS_PORT=4433
+      - HTTPS=OFF
+    restart: unless-stopped
+    ports:
+      - 25:25/tcp #this is specified here instead of Traefik, as the passthrough doesnt appear to work correctly, not showing source IP addresses.
+    volumes:
+      - appdata:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /data/certs/poste_certs/domain.com/privatekey.pem:/data/ssl/server.key:ro
+      - /data/certs/poste_certs/private/letsencrypt.pem:/data/ssl/ca.crt:ro
+      - /data/certs/poste_certs/domain.com/certificate.pem:/data/ssl/server.crt:ro
+    networks:
+      - proxynet
+    labels:
+      - "traefik.enable=true"
+      # GUI/HTTPS
+      - "traefik.http.routers.poste-io.rule=Host(`mail.domain.com`) || Host(`autodiscover.domain.com`) || Host(`autoconfig.domain.com`) || Host(`email.domain.com`) || Host(`imap.domain.com`) || Host(`pop3.domain.com`) || Host(`smtp.domain.com`)"
+      - "traefik.http.routers.poste-io.entrypoints=https"
+      - "traefik.http.routers.poste-io.tls=true"
+      - "traefik.http.services.poste-io.loadbalancer.server.port=8080"
+      - "traefik.http.services.poste-io.loadbalancer.passHostHeader=true"
+      # SMTPS
+      - "traefik.tcp.routers.smtps.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtps.entrypoints=smtps"
+      - "traefik.tcp.routers.smtps.service=smtps"
+      - "traefik.tcp.routers.smtps.middlewares=ipallowlist"
+      - "traefik.tcp.services.smtps.loadbalancer.server.port=587"
+      - "traefik.tcp.services.smtps"
+      # IMAP/S 
+      - "traefik.tcp.routers.imaps.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.imaps.entrypoints=imaps"
+      - "traefik.tcp.routers.imaps.service=imaps"
+      - "traefik.tcp.routers.imaps.middlewares=ipallowlist"
+      - "traefik.tcp.services.imaps.loadbalancer.server.port=993"
+
+# Networks
+networks:
+  proxynet:
+    name: proxynet
+    external: true
+    
+# Volumes
+volumes:
+  appdata:
+    driver: local
