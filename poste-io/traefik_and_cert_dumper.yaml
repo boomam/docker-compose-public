@@ -91,17 +91,19 @@ services:
       - "--certificatesResolvers.cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53"    
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.entrypoints=http"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
-      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
-      - "traefik.http.routers.traefik-secure.entrypoints=https"
-      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
-      - "traefik.http.routers.traefik-secure.tls=true"
-      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].main=domain.com"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.domain.com"
-      - "traefik.http.routers.traefik-secure.service=api@internal"
-      - "traefik.http.routers.traefik-secure.middlewares=ipallowlist" # new
+      # Trafik Dashboard
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
+      - "traefik.http.routers.traefik-dashboard.entryPoints=https"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=ipallowlist"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].main=domain.com"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].sans=*.domain.com"
+      # Traefik Dashboard HTTP Redirect
+      - "traefik.http.routers.traefik-dashboard-http.entrypoints=http"
+      - "traefik.http.routers.traefik-dashboard-http.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
+      - "traefik.http.routers.traefik-dashboard-http.middlewares=https-redirectscheme"
       # Middleware - IP Allow List (http)
       - "traefik.http.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
       # Middleware - IP Allow List (tcp)
