@@ -3,8 +3,9 @@ The config is designed to be used with a VPS, that has its own external IP, and 
 ## Pre-Reqs
 1. A configured network interface (WireGuard, Tailscale, etc.) to allow connectivity back to your on-prem.  
 2. A directory on the servers root called /data/certs/traefik_certs  
-3. A directory on the servers root called /data/certs/poste_certs  
-4. Ideally a remote system to run connectivity tests from OR a VPN connection like NordVPN  
+3. A directory on the servers root called /data/certs/poste_certs
+4. A directory on the servers root called /data/scripts  
+5. Ideally a remote system to run connectivity tests from OR a VPN connection like NordVPN  
 
 ## Deploy Portainer
 Login to server, re-create the [portainer-agent.yaml](./portainer-agent.yaml) file.  
@@ -47,7 +48,7 @@ Connecting to mail.domain.com on port25
 
 << 220 mail.domain.com ESMTP Haraka ready
 ```  
-You can also verify that Poste see's the original source IP by checking the dashboard screen, and seeing if a live connection from an external testing service, like [MX Toolbox](https://mxtoolbox.com/SuperTool.aspx?action=smtp) shows its original IP, and not the IP of your docker network.  
+You can also verify that Poste see's the original source IP by checking the dashboard screen, and seeing if a live connection from an external testing service, like [MX Toolbox](https://mxtoolbox.com/diagnostic.aspx) shows its original IP, and not the IP of your docker network.  
 Example -  
 ![poste-original-ip-example](./poste-original-ip-example.png)  
 
