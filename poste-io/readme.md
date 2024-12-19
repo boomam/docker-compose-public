@@ -34,7 +34,7 @@ You can edit the cron timings, but this will run the script at 5am on the first 
 _Note, whilst you can techincally just have Traefik store its acme.json file elseware in the config, a common bug is for it to not work properly and instead create a folder instead of a json file, or even if you pre-create the json file, it will ignore permissions and just not work. This method sidesteps that._  
 
 #### Check if certificiates were imported into Poste
-Check the docker log, where you will see similar to the below - 
+Check the docker log, where you will see similar to the below -  
 ![poste-docker-log-certs](./poste-docker-log-certs.png)  
 
 ## Deploy Poste
