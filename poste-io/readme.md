@@ -18,6 +18,20 @@ In your portainer interface, copy the [traefik_and_cert_dumper.yaml](./traefik_a
 Edit the variables in the file to your own, and the IP addresses on the ports again.  
 Then deploy.  
 
+## Certificates
+At this point, wait 10-15mins for Traefik to requests its initial certificates and dump to its acme.json file in its working folder.
+### Setup automatic copy job
+#### Create Script
+Create the [copy script](./update_cert_for_poste-io.sh), in `data/scripts` then make the file executable with `chmod +x /data/scripts/update_cert_for_poste-io.sh`.  
+#### Edit Crontab  
+Run `crontab -e` and add the following to the bottom of the file.  
+You can edit the cron timings, but this will run the script at 5am on the first day of each month with the current settings, and output that it has ran to syslog too.  
+```sh
+# Update acme certificate for export to poste
+0 5 1 * * /data/scripts/update_cert_for_poste-io.sh | logger -t update_cert_for_posteio
+```
+_Note, whilst you can techincally just have Traefik store its acme.json file elseware in the config, a common bug is for it to not work properly and instead create a folder instead of a json file, or even if you pre-create the json file, it will ignore permissions and just not work. This method sidesteps that._  
+
 ## Deploy Poste
 In your portainer interface, copy the [poste-io.yaml](./poste-io.yaml) file contents to a new stack.  
 Edit the variables in the file to your own, and the IP addresses on the ports again.  
@@ -44,8 +58,8 @@ Run the following commands on CLI to check for certificate usage on your SMTPS, 
 HOST=mail.domain.com
 # test the SMTP port 587 with STARTTLS
 echo | openssl s_client -servername $HOST -connect $HOST:587 -starttls smtp 2>/dev/null | openssl x509 -noout -issuer -subject -dates
-# test the SMTPS, IMAPS & POP3S ports
-for PORT in 465 993 995; do echo | openssl s_client -servername $HOST -connect $HOST:$PORT 2>/dev/null | openssl x509 -noout -issuer -subject -dates; done
+# test the SMTPS & IMAPS ports
+for PORT in 465 993; do echo | openssl s_client -servername $HOST -connect $HOST:$PORT 2>/dev/null | openssl x509 -noout -issuer -subject -dates; done
 ```  
 
 ## Security
