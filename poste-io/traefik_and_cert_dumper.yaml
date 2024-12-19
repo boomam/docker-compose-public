@@ -103,7 +103,9 @@ services:
       - "traefik.http.routers.traefik-secure.service=api@internal"
       - "traefik.http.routers.traefik-secure.middlewares=ipallowlist" # new
       # Middleware - IP Allow List (http)
-      - "traefik.http.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_ CIDR"
+      - "traefik.http.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
+      # Middleware - IP Allow List (tcp)
+      - "traefik.tcp.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
       # Middleware - Redirect
       - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
       # Middleware - SSL Headers
