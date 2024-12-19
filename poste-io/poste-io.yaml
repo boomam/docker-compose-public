@@ -11,7 +11,15 @@ services:
       - HTTPS=OFF
     restart: unless-stopped
     ports:
-      - 25:25/tcp #this is specified here instead of Traefik, as the passthrough doesnt appear to work correctly, not showing source IP addresses.
+      #these is specified here instead of Traefik, as the passthrough doesnt appear to work correctly, nor showing source IP addresses.
+      # SMTP
+      - 25:25/tcp 
+      # IMAPS
+      - "1.2.3.4:993:993"
+      - "5.6.7.8:993:993"
+      # SMTPS
+      - "1.2.3.4:587:587"
+      - "5.6.7.8:587:587"
     volumes:
       - appdata:/data
       - /etc/localtime:/etc/localtime:ro
@@ -28,19 +36,6 @@ services:
       - "traefik.http.routers.poste-io.tls=true"
       - "traefik.http.services.poste-io.loadbalancer.server.port=8080"
       - "traefik.http.services.poste-io.loadbalancer.passHostHeader=true"
-      # SMTPS
-      - "traefik.tcp.routers.smtps.rule=HostSNI(`*`)"
-      - "traefik.tcp.routers.smtps.entrypoints=smtps"
-      - "traefik.tcp.routers.smtps.service=smtps"
-      - "traefik.tcp.routers.smtps.middlewares=ipallowlist"
-      - "traefik.tcp.services.smtps.loadbalancer.server.port=587"
-      - "traefik.tcp.services.smtps"
-      # IMAP/S 
-      - "traefik.tcp.routers.imaps.rule=HostSNI(`*`)"
-      - "traefik.tcp.routers.imaps.entrypoints=imaps"
-      - "traefik.tcp.routers.imaps.service=imaps"
-      - "traefik.tcp.routers.imaps.middlewares=ipallowlist"
-      - "traefik.tcp.services.imaps.loadbalancer.server.port=993"
 
 # Networks
 networks:
