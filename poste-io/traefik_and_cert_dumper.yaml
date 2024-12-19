@@ -26,13 +26,6 @@ services:
     networks:
       - proxynet
     ports:
-      #- 25:25/tcp # commented out as its configured on Poste-io directly to allow IP addresses to be visible to the container.
-      # IMAPS from Internal Addresses only
-      - "1.2.3.4:993:993"
-      - "5.6.7.8:993:993"
-      # SMTP Submission
-      - "1.2.3.4:587:587"
-      - "5.6.7.8:587:587"
       # HTTP
       - "1.2.3.4:80:80"
       - "5.6.7.8.26:80:80"
