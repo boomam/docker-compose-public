@@ -48,7 +48,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - appdata:/etc/traefik
-      - /data/certs/traefik_certs:/data/certs/traefik_certs #new for certificate export
     command:
     # Global
       - "--global.checknewversion=true"
@@ -58,7 +57,6 @@ services:
       - "--log.level=ERROR" #ERROR - TRACE, DEBUG, INFO, WARN, ERROR, FATAL, and PANIC
     # API/Dashboard
       - "--api=true"
-#      - "--api.insecure=true"
       - "--api.dashboard=true"
       - "--api.debug=false"
     # Metrics
@@ -86,7 +84,6 @@ services:
     # Certificiate Resolver - Cloudflare
       - "--certificatesResolvers.cloudflare.acme.email=$Your_Email_Address_for_LE_Notifications"
       - "--certificatesResolvers.cloudflare.acme.storage=/etc/traefik/acme.json"
-#      - "--certificatesResolvers.cloudflare.acme.storage=/data/certs/traefik_certs/acme.json" 
       - "--certificatesResolvers.cloudflare.acme.dnsChallenge.provider=cloudflare"
       - "--certificatesResolvers.cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53"    
     labels:
