@@ -8,13 +8,16 @@ services:
       - no-new-privileges:true
     networks:
       - proxynet
-    ports: # add ports you need as entry points below, in the format of host_port:container_port
-      - 80:80
-      - 443:443
-      - 8081:8081
+    ports:
+      # HTTP
+      - "80:80" #If you only want to advertise on specific IPs on the host, you can instead use the format of IP_Address:HostPort:ContainerPort
+      # HTTPS
+      - 443:443/tcp
+      # Metrics
+      - "8081:8081" #If you only want to advertise on specific IPs on the host, you can instead use the format of IP_Address:HostPort:ContainerPort
     environment:
-      - CF_API_EMAIL=CLOUDFLARE_EMAIL_ADDRESS
-      - CF_DNS_API_TOKEN=CLOUDFLARE_API_TOKEN
+      - CF_API_EMAIL=$Your_Email_Address_in_Cloudflare
+      - CF_DNS_API_TOKEN=$Your_Cloudflare_DNS_API_Token
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -24,10 +27,8 @@ services:
       - "--global.checknewversion=true"
       - "--global.sendanonymoususage=false"
       - "--serverstransport.insecureskipverify=true"
-    # Config File Location
-      - "--providers.file.filename=/etc/traefik/config.yml" # Disabled to allow docker/label config only
     # Log Level
-      - "--log.level=INFO" #ERROR/DEBUG/INFO
+      - "--log.level=ERROR" #ERROR - TRACE, DEBUG, INFO, WARN, ERROR, FATAL, and PANIC
     # API/Dashboard
       - "--api=true"
       - "--api.dashboard=true"
@@ -48,28 +49,44 @@ services:
       - "--entrypoints.https.address=:443"
     # entryPoints - Metrics
       - "--entrypoints.metrics.address=:8081"
-
+    # entryPoints - SMTP
+      - "--entrypoints.smtp.address=:25/tcp"
+    # entryPoints - IMAPS
+      - "--entrypoints.imaps.address=:993/tcp"
+    # entryPoints - SMTP Submission
+      - "--entrypoints.smtps.address=:587/tcp"
     # Certificiate Resolver - Cloudflare
-      - "--certificatesResolvers.cloudflare.acme.email=EMAIL_FOR_LETS_ENCRYPT"
+      - "--certificatesResolvers.cloudflare.acme.email=$Your_Email_Address_for_LE_Notifications"
       - "--certificatesResolvers.cloudflare.acme.storage=/etc/traefik/acme.json"
       - "--certificatesResolvers.cloudflare.acme.dnsChallenge.provider=cloudflare"
       - "--certificatesResolvers.cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53"    
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.entrypoints=http"
-      - "traefik.http.routers.traefik.rule=Host(`FQDN_FOR_TRAEFIK_DASHBOARD`)" # Set Traefik Dashboard URL
-      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
-      - "traefik.http.routers.traefik-secure.entrypoints=https"
-      - "traefik.http.routers.traefik-secure.rule=Host(`FQDN_FOR_TRAEFIK_DASHBOARD`)" # Set Traefik Dashboard URL
-      - "traefik.http.routers.traefik-secure.tls=true"
-      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].main=DOMAIN_ROOT"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=DOMAIN_ROOT"
-      - "traefik.http.routers.traefik-secure.service=api@internal"
+      # Trafik Dashboard
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
+      - "traefik.http.routers.traefik-dashboard.entryPoints=https"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=ipallowlist"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].main=domain.com"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].sans=*.domain.com"
+      # Traefik Dashboard HTTP Redirect
+      - "traefik.http.routers.traefik-dashboard-http.entrypoints=http"
+      - "traefik.http.routers.traefik-dashboard-http.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
+      - "traefik.http.routers.traefik-dashboard-http.middlewares=https-redirectscheme"
+      # Middleware - IP Allow List (http)
+      - "traefik.http.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
+      # Middleware - IP Allow List (tcp)
+      - "traefik.tcp.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
+      # Middleware - Redirect
       - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      # Middleware - SSL Headers
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      # Middleware - HTTPS Redirect Scheme
       - "traefik.http.middlewares.https-redirectscheme.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirectscheme.redirectscheme.permanent=true"
+      # Middleware - Default Headers
       - "traefik.http.middlewares.default-headers.headers.frameDeny=true"
       - "traefik.http.middlewares.default-headers.headers.browserXssFilter=true"
       - "traefik.http.middlewares.default-headers.headers.contentTypeNosniff=true"
@@ -79,9 +96,8 @@ services:
       - "traefik.http.middlewares.default-headers.headers.stsSeconds=15552000"
       - "traefik.http.middlewares.default-headers.headers.customFrameOptionsValue=SAMEORIGIN"
       - "traefik.http.middlewares.default-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.default-whitelist.ipWhiteList.sourceRange=10.0.0.0/8,192.168.0.0/16,172.16.0.0/12" #COMMA SEPARATED LIST OF IP RANGES TO WHITELIST
-      - "traefik.http.middlewares.secured.chain.middlewares=default-whitelist,default-headers"
-
+      # Middleware - Secure Chain      
+      - "traefik.http.middlewares.secured.chain.middlewares=ipallowlist,default-headers"
 networks:
   proxynet:
     name: proxynet
