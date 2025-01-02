@@ -45,8 +45,10 @@ services:
       - "--entrypoints.http.address=:80"
       - "--entrypoints.http.http.redirections.entryPoint.to=https"
       - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.http.forwardedHeaders.trustedIPs=$Comma_seperated_list_of_CIDR"
     # entryPoints - HTTPS
       - "--entrypoints.https.address=:443"
+      - "--entrypoints.https.forwardedHeaders.trustedIPs=$Comma_seperated_list_of_CIDR"
     # entryPoints - Metrics
       - "--entrypoints.metrics.address=:8081"
     # entryPoints - SMTP
@@ -74,18 +76,13 @@ services:
       # Traefik Dashboard HTTP Redirect
       - "traefik.http.routers.traefik-dashboard-http.entrypoints=http"
       - "traefik.http.routers.traefik-dashboard-http.rule=Host(`traefik.domain.com`)" # Set Traefik Dashboard URL
-      - "traefik.http.routers.traefik-dashboard-http.middlewares=https-redirectscheme"
+      - "traefik.http.routers.traefik-dashboard-http.middlewares=redirect-http-to-https@internal"
       # Middleware - IP Allow List (http)
       - "traefik.http.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
       # Middleware - IP Allow List (tcp)
       - "traefik.tcp.middlewares.ipallowlist.ipallowlist.sourcerange="$Comma_seperated_list_of_CIDR"
-      # Middleware - Redirect
-      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
       # Middleware - SSL Headers
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
-      # Middleware - HTTPS Redirect Scheme
-      - "traefik.http.middlewares.https-redirectscheme.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirectscheme.redirectscheme.permanent=true"
       # Middleware - Default Headers
       - "traefik.http.middlewares.default-headers.headers.frameDeny=true"
       - "traefik.http.middlewares.default-headers.headers.browserXssFilter=true"
@@ -97,7 +94,7 @@ services:
       - "traefik.http.middlewares.default-headers.headers.customFrameOptionsValue=SAMEORIGIN"
       - "traefik.http.middlewares.default-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
       # Middleware - Secure Chain      
-      - "traefik.http.middlewares.secured.chain.middlewares=ipallowlist,default-headers"
+      - "traefik.http.middlewares.secured.chain.middlewares=ipallowlist,default-headers,redirect-http-to-https@internal"
 networks:
   proxynet:
     name: proxynet
