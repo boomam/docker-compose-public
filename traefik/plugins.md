@@ -10,6 +10,7 @@ Edit the Traefik docker-compose labels, editing the chain based middleware with 
       # Middleware - Secure Chain      
       - "traefik.http.middlewares.secured.chain.middlewares=redirect-http-to-https@internal,cloudflare-real-ip,default-headers,geo-block,ipallowlist"
 ```
+Then, assuming `secured@docker` is added as the sole middleware on each app, it will filter down to each.
 
 ## Plugins
  - [Geo-Block](###Geo-Block)
