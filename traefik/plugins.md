@@ -1,12 +1,24 @@
 # Traefik Plugins
 The below are some basic config examples for common middleware plugins -  
-## Adding plugins to apps
+
+## Adding plugins to apps (per middleware)
 Just edit the labels on the given app, to include the relevant plugin-name@docker into its middleware label, and that particular app will then begin using the plugin, based on the plugin settings defined at 'traefik level'.  
 
-## Geo-Block
+## Add to all apps as part of a chain
+Edit the Traefik docker-compose labels, editing the chain based middleware with a comma separated list of middlewares - 
+```yaml
+      # Middleware - Secure Chain      
+      - "traefik.http.middlewares.secured.chain.middlewares=redirect-http-to-https@internal,cloudflare-real-ip,default-headers,geo-block,ipallowlist"
+```
+
+## Plugins
+ - [Geo-Block](###Geo-Block)
+ - [Cloudflare Real IP](###Cloudflare-Real-IP)
+
+### Geo-Block
 https://plugins.traefik.io/plugins/62d6ce04832ba9805374d62c/geo-block  
 
-### Add plugin via Traefik Plugin Registry
+#### Add plugin via Traefik Plugin Registry
 Add the following in your docker-compose to the `command:` section of the file -  
 ```yaml
     # Plugins - geo-block
@@ -62,16 +74,16 @@ INFO: GeoBlock: 2024/12/21 12:43:03 log allowed requests: false
 INFO: GeoBlock: 2024/12/21 12:43:03 log local requests: false
 INFO: GeoBlock: 2024/12/21 12:43:03 allow local IPs: true
 ```
-### Testing where an IP is according to the API  
+#### Testing where an IP is according to the API  
 Not directly related to the plugin per-say, but if you want to test, open a web browser and enter the following URL -  
 `https://get.geojs.io/v1/ip/country/IP_Address` - where `IP_Address` is literally an IP address to check.  
 
 The website will then show a basic two letter ISO code for that particular IP.  
 
-## Cloudflare Real-IP
+### Cloudflare Real-IP
 [https://plugins.traefik.io/plugins/62d6ce04832ba9805374d62c/geo-block](https://plugins.traefik.io/plugins/62e97498e2bf06d4675b9443/real-ip-from-cloudflare-proxy-tunnel)
 
-### Add plugin via Traefik Plugin Registry
+#### Add plugin via Traefik Plugin Registry
 Add the following in your docker-compose to the `command:` section of the file -  
 ```yaml
     # Plugins - geo-block
