@@ -67,3 +67,31 @@ Not directly related to the plugin per-say, but if you want to test, open a web 
 `https://get.geojs.io/v1/ip/country/IP_Address` - where `IP_Address` is literally an IP address to check.  
 
 The website will then show a basic two letter ISO code for that particular IP.  
+
+## Cloudflare Real-IP
+[https://plugins.traefik.io/plugins/62d6ce04832ba9805374d62c/geo-block](https://plugins.traefik.io/plugins/62e97498e2bf06d4675b9443/real-ip-from-cloudflare-proxy-tunnel)
+
+### Add plugin via Traefik Plugin Registry
+Add the following in your docker-compose to the `command:` section of the file -  
+```yaml
+    # Plugins - geo-block
+      - "--experimental.plugins.cloudflare-real-ip.modulename=github.com/BetterCorp/cloudflarewarp"
+      - "--experimental.plugins.cloudflare-real-ip.version=v1.3.0"
+```
+Next, add the following to the `labels:` section -  
+```yaml
+      # Middleware/Plugin - Cloudflare-Real-IP #
+      - "traefik.http.middlewares.cloudflare-real-ip.plugin.cloudflare-real-ip.disableDefault=false"
+      #- "traefik.http.middlewares.cloudflare-real-ip.plugin.cloudflare-real-ip.trustip=" 
+```
+_Trust IPS not required if disableDefault is false - we will allocate Cloud Flare IPs automatically_  
+&nbsp;  
+Lastly, edit both the secured-chain middleware to add GeoBlock to that should you ever need it too - 
+```yaml
+      - "traefik.http.middlewares.secured.chain.middlewares=ipallowlist,default-headers,geo-block,cloudflare-real-ip"
+```
+& the router for the Traefik dashboard to add it so that its in use on the dashboard too - 
+```yaml
+      - "traefik.http.routers.traefik-dashboard.middlewares=ipallowlist,geo-block@docker,cloudflare-real-ip@docker"
+```
+Following this, deploy Traefik again/update the stack.  
