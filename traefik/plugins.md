@@ -89,7 +89,7 @@ Add the following in your docker-compose to the `command:` section of the file -
 ```yaml
     # Plugins - geo-block
       - "--experimental.plugins.cloudflare-real-ip.modulename=github.com/BetterCorp/cloudflarewarp"
-      - "--experimental.plugins.cloudflare-real-ip.version=v1.3.0"
+      - "--experimental.plugins.cloudflare-real-ip.version=v1.3.3"
 ```
 Next, add the following to the `labels:` section -  
 ```yaml
@@ -99,7 +99,8 @@ Next, add the following to the `labels:` section -
 ```
 _Trust IPS not required if disableDefault is false - we will allocate Cloud Flare IPs automatically_  
 &nbsp;  
-Lastly, edit both the secured-chain middleware to add GeoBlock to that should you ever need it too - 
+# Configure middlewares for usage
+Next, edit both the secured-chain middleware to add GeoBlock to that should you ever need it too - 
 ```yaml
       - "traefik.http.middlewares.secured.chain.middlewares=ipallowlist,default-headers,geo-block,cloudflare-real-ip"
 ```
@@ -107,4 +108,51 @@ Lastly, edit both the secured-chain middleware to add GeoBlock to that should yo
 ```yaml
       - "traefik.http.routers.traefik-dashboard.middlewares=ipallowlist,geo-block@docker,cloudflare-real-ip@docker"
 ```
+&nbsp;  
 Following this, deploy Traefik again/update the stack.  
+
+#### Alternative
+Go-to your `traefik.yaml` and add 
+```yaml
+entryPoints:
+...
+  https:
+    address: ":443"
+    forwardedHeaders:
+      insecure: false # true will trust all forwarded header sources
+      trustedIPs:
+        # Start of Cloudflare public IP list for HTTP requests, remove this if you don't use it; https://www.cloudflare.com/de-de/ips/
+        - 103.21.244.0/22
+        - 103.22.200.0/22
+        - 103.31.4.0/22
+        - 104.16.0.0/13
+        - 104.24.0.0/14
+        - 108.162.192.0/18
+        - 131.0.72.0/22
+        - 141.101.64.0/18
+        - 162.158.0.0/15
+        - 172.64.0.0/13
+        - 173.245.48.0/20
+        - 188.114.96.0/20
+        - 190.93.240.0/20
+        - 197.234.240.0/22
+        - 198.41.128.0/17
+        - 2400:cb00::/32
+        - 2606:4700::/32
+        - 2803:f800::/32
+        - 2405:b500::/32
+        - 2405:8100::/32
+        - 2a06:98c0::/29
+        - 2c0f:f248::/32
+        # End of Cloudlare public IP list
+        # Internal IP ranges
+        - 192.168.0.0/24
+        - 192.168.200.0/24
+        - 192.168.201.0/24
+        - 192.168.66.0/24
+        - 192.168.30.0/24
+        - 192.168.20.0/24
+        # Docker IP Range
+        - 172.10.0.0/24
+```
+You should now see client IPs in your logs.
